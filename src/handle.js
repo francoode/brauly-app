@@ -1,5 +1,6 @@
 const Database = require('./database');
 const Jimp = require('jimp');
+const fs = require('fs');
 
 const {remote} = require('electron');
 const dialog = remote.dialog;
@@ -26,27 +27,30 @@ document.getElementById('process').addEventListener('click', async () => {
         const db = await Database.getInstance();
         const products = await db.getAllProducts();
 
-        let path = '';
+        let base_path = '';
         const parameters = await db.getParameters();
         if(parameters && Array.isArray(parameters) && parameters[0]) {
-            path = parameters[0].base_path;
+            base_path = parameters[0].base_path;
         }
 
-        if(!path) {
+        if(!base_path) {
             throw new Error('No path for images');
         }
+
+        console.log(base_path);
+        if (!fs.existsSync(`${base_path}/out`)) fs.mkdir(`${base_path}/out`, () => {});
 
         if (products.length >= 1) {
             for (const p of products) {
                 try {
                     const price = document.getElementById(`price-${p.id}`).value;
                     if (price) {
-                        const path = `${path}/img/${p.path}`;
+                        const path = `${base_path}/${p.path}`;
                         const image = await Jimp.read(path);
                         const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
                         await image.resize(600, 600);
                         await image.print(font, 65, 500, `$${price}`);
-                        await image.write(`${path}/out/${p.name}.jpg`);
+                        await image.write(`${base_path}/out/${p.name}.jpg`);
 
                         document.getElementById(`result-${p.id}`).innerHTML = `<span class="icon icon-check success"></span>`
                     } else {
@@ -68,6 +72,7 @@ document.getElementById('form-new-product').addEventListener('submit', async (ev
         event.preventDefault();
         const name = document.getElementById('product-name').value;
         const path = document.getElementById('product-file').files[0].name;
+        console.log(path);
 
         if (!name || !path) {
             throw new Error('Invalid value');
