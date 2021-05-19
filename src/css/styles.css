@@ -1,0 +1,20 @@
+#container-product-form {
+    margin: 0 20px;
+}
+
+#products-list {
+}
+
+#form-message-success {
+}
+
+#form-message-error {
+}
+
+.success {
+    color: #29a03b;
+}
+
+.error {
+    color: red;
+}
